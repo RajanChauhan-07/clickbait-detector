@@ -3,7 +3,7 @@
 import os
 
 # ── API Keys ──────────────────────────────────────────────────────────────────
-YOUTUBE_API_KEY = "AIzaSyCpjYl9LqOC6kqGxynTXvfo4GHk1tbN04U"  # paste your key here
+YOUTUBE_API_KEY = os.environ.get("YOUTUBE_API_KEY", "")
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 BASE_DIR        = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

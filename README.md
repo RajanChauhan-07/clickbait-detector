@@ -1,3 +1,12 @@
+---
+title: YouTube Clickbait Detector
+emoji: 🎯
+colorFrom: red
+colorTo: yellow
+sdk: docker
+pinned: false
+---
+
 # 🎯 YouTube Clickbait Detector
 ### Multimodal AI System — Text + Vision + Semantics
 
