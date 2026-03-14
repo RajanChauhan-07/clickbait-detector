@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Clickbait Detector</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/>
+</head>
+<body>
+<div class="noise"></div>
+
+<div class="app">
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-mark">
+          <span class="logo-emoji">🎯</span>
+        </div>
+        <div class="logo-text">
+          <h1>Clickbait Detector</h1>
+          <p>Multimodal AI Analysis</p>
+        </div>
+      </div>
+      <nav class="nav-pills">
+        <span class="pill">MiniLM-L6-v2</span>
+        <span class="pill">CLIP ViT-B/32</span>
+        <span class="pill">MLP · 80.5% acc</span>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-label">AI-Powered Detection</div>
+    <h2 class="hero-title">Is this video <em>actually</em><br/>worth your time?</h2>
+    <p class="hero-sub">Paste any YouTube URL. Our multimodal AI analyzes the title, thumbnail, transcript, and comments to detect clickbait.</p>
+  </section>
+
+  <!-- Search -->
+  <section class="search-section">
+    <div class="search-card">
+      <div class="search-row">
+        <div class="search-input-wrap">
+          <svg class="search-icon" viewBox="0 0 20 20" fill="none">
+            <path d="M8.5 3a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 8.5a6.5 6.5 0 1 1 11.436 4.23l3.857 3.857a.75.75 0 0 1-1.06 1.06l-3.857-3.856A6.5 6.5 0 0 1 2 8.5Z" fill="currentColor"/>
+          </svg>
+          <input id="urlInput" type="text"
+            placeholder="https://www.youtube.com/watch?v=..."
+            autocomplete="off" spellcheck="false"/>
+        </div>
+        <button id="analyzeBtn" onclick="analyze()">
+          <span id="btnText">Analyze</span>
+          <span id="btnSpinner" class="spinner hidden"></span>
+        </button>
+      </div>
+      <div id="errorMsg" class="error-msg hidden"></div>
+      <div class="search-hints">
+        <span>Try:</span>
+        <span class="hint-tag" onclick="fillExample('https://www.youtube.com/watch?v=dQw4w9WgXcQ')">Rick Astley</span>
+        <span class="hint-tag" onclick="fillExample('https://www.youtube.com/watch?v=9bZkp7q19f0')">PSY Gangnam</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Result -->
+  <section id="resultSection" class="result-section hidden">
+
+    <!-- Verdict hero -->
+    <div id="verdictHero" class="verdict-hero">
+      <div class="verdict-hero-inner">
+        <div class="verdict-icon-wrap">
+          <span id="verdictIcon" class="verdict-big-icon"></span>
+        </div>
+        <div class="verdict-text">
+          <div id="verdictLabel" class="verdict-big-label"></div>
+          <div id="verdictDesc" class="verdict-big-desc"></div>
+        </div>
+        <div class="verdict-confidence">
+          <div id="confidenceVal" class="conf-number"></div>
+          <div class="conf-label">confidence</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cards grid -->
+    <div class="cards-grid">
+
+      <!-- Video info card -->
+      <div class="card card-video">
+        <img id="thumbnail" class="thumb" src="" alt=""/>
+        <div class="card-body">
+          <h3 id="videoTitle" class="video-title"></h3>
+          <p id="videoChannel" class="video-channel"></p>
+          <div class="meta-row">
+            <span id="viewCount" class="meta-chip"></span>
+            <span id="likeCount" class="meta-chip"></span>
+            <span id="publishedAt" class="meta-chip"></span>
+          </div>
+          <div class="signal-row">
+            <span id="transcriptBadge" class="signal-badge"></span>
+            <span id="commentsBadge" class="signal-badge"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Probabilities card -->
+      <div class="card card-probs">
+        <div class="card-header-label">Class Probabilities</div>
+        <div id="probBars" class="prob-bars"></div>
+      </div>
+
+      <!-- Similarity card -->
+      <div class="card card-sim">
+        <div class="card-header-label">Title vs Content Match</div>
+        <div class="sim-visual">
+          <div class="sim-ring-wrap">
+            <svg viewBox="0 0 100 100" class="sim-ring-svg">
+              <circle cx="50" cy="50" r="40" class="ring-bg"/>
+              <circle cx="50" cy="50" r="40" class="ring-fill" id="simRing"
+                stroke-dasharray="251.2" stroke-dashoffset="251.2"/>
+            </svg>
+            <div class="sim-ring-text">
+              <span id="simPct" class="sim-pct-num"></span>
+              <span class="sim-pct-label">match</span>
+            </div>
+          </div>
+          <div class="sim-desc" id="simDesc"></div>
+        </div>
+      </div>
+
+      <!-- Transcript card -->
+      <div class="card card-transcript" id="transcriptCard">
+        <div class="card-header-label">Transcript Preview</div>
+        <p id="transcriptText" class="transcript-text"></p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="how-section">
+    <div class="how-label">How it works</div>
+    <div class="how-grid">
+      <div class="how-item">
+        <div class="how-icon">📡</div>
+        <div class="how-title">Fetch</div>
+        <div class="how-desc">Pulls title, thumbnail, transcript and comments live from YouTube</div>
+      </div>
+      <div class="how-item">
+        <div class="how-icon">🧠</div>
+        <div class="how-title">Embed</div>
+        <div class="how-desc">Encodes text with MiniLM and images with CLIP ViT-B/32</div>
+      </div>
+      <div class="how-item">
+        <div class="how-icon">🔗</div>
+        <div class="how-title">Fuse</div>
+        <div class="how-desc">Combines all modalities into a 2049-dim multimodal vector</div>
+      </div>
+      <div class="how-item">
+        <div class="how-icon">⚡</div>
+        <div class="how-title">Classify</div>
+        <div class="how-desc">MLP predicts one of three classes with confidence score</div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    Built by Rajan Chauhan &nbsp;·&nbsp; Bennett University &nbsp;·&nbsp; 2025
+  </footer>
+</div>
+
+<script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+</html>
