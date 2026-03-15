@@ -551,6 +551,7 @@ With only 192 bad clickbait samples, SMOTE oversampling would generate synthetic
 ## Repository
 
 **GitHub:** [github.com/RajanChauhan-07/clickbait-detector](https://github.com/RajanChauhan-07/clickbait-detector)
+Hugging Face : https://huggingface.co/spaces/rajanchauhan/clickbait-detector
 
 **Contact:** helllorajanchauhan@gmail.com  
 **LinkedIn/GitHub:** RajanChauhan-07
